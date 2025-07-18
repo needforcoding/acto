@@ -33,7 +33,5 @@ Aclind (kozmetik ve kişisel bakım) ve Acto (medikal ve hijyen ürünleri) mark
 | Chart.js    | Grafik oluşturma ve analiz    |
 | Google Fonts (Inter) | Tipografi            |
 
----
 
-## 📂 Dosya Yapısı
 
