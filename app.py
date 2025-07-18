@@ -1,52 +1,49 @@
-import pandas as pd
-import matplotlib.pyplot as plt
 import streamlit as st
+import pandas as pd
+import plotly.express as px
 
-# Veriler
-data = [
-    {"category": "Aclind", "product": "Leke Karşıtı Krem", "tr": 45, "de": 48},
-    {"category": "Aclind", "product": "Yaşlanma Karşıtı Krem", "tr": 22, "de": 54},
-    {"category": "Aclind", "product": "Florürsüz Diş Macunu", "tr": 45, "de": 63},
-    {"category": "Aclind", "product": "Kadın Parfümü", "tr": 70, "de": 22},
-    {"category": "Aclind", "product": "Yüksek Korumalı Güneş Kremi", "tr": 75, "de": 65},
-    {"category": "Aclind", "product": "Ağız Bakım Paketi", "tr": 70, "de": 55},
-    {"category": "Acto", "product": "El Dezenfektanı", "tr": 60, "de": 85},
-    {"category": "Acto", "product": "Yüzey Dezenfektanı", "tr": 50, "de": 80}
-]
+# Sayfa başlığı ve ayarı
+st.set_page_config(page_title="Aclind & Acto Dashboard", layout="wide")
+st.title("📊 Aclind & Acto | Veriye Dayalı Strateji Panosu")
+
+# Açıklama bölümü
+st.markdown(
+    """
+    İki marka, iki pazar: Türkiye ve Almanya'daki ürün trendlerini karşılaştırmak için interaktif analiz aracı.  
+    **Aclind** kozmetik temelli; **Acto** ise medikal ürünleri temsil eder.
+    """
+)
+
+# JSON verisini oku
+import json
+with open("data.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
 
 df = pd.DataFrame(data)
 
-# Sayfa yapılandırması
-st.set_page_config(layout="wide", page_title="Aclind & Acto | Strateji Panosu")
-st.title("📊 Aclind & Acto | Veriye Dayalı Strateji Panosu")
+# Filtre seçimi
+kategori = st.radio("Kategoriye Göre Filtrele:", ["Tüm Ürünler", "Aclind", "Acto"], horizontal=True)
+if kategori != "Tüm Ürünler":
+    df = df[df["category"] == kategori]
 
-st.markdown(
-    "İki marka, iki pazar: Türkiye ve Almanya'daki ürün trendlerini karşılaştırmak için interaktif analiz aracı. "
-    "**Aclind** kozmetik temelli; **Acto** ise medikal ürünleri temsil eder."
+# Plotly grafik
+fig = px.bar(
+    df,
+    y="product",
+    x=["tr", "de"],
+    orientation="h",
+    barmode="group",
+    labels={"value": "Trend Skoru", "variable": "Pazar"},
+    color_discrete_map={"tr": "#3498db", "de": "#1abc9c"},
+    height=500,
 )
 
-# Kategori filtresi
-segment = st.radio("Kategoriye Göre Filtrele:", ["Tüm Ürünler", "Aclind", "Acto"], horizontal=True)
+fig.update_layout(
+    xaxis_title="Trend Skoru (0-100)",
+    yaxis_title="Ürünler",
+    legend_title="Pazar",
+    yaxis=dict(autorange="reversed")
+)
 
-# Filtrelenmiş veri
-if segment == "Aclind":
-    df_plot = df[df["category"] == "Aclind"]
-elif segment == "Acto":
-    df_plot = df[df["category"] == "Acto"]
-else:
-    df_plot = df.copy()
+st.plotly_chart(fig, use_container_width=True)
 
-# Grafik
-st.subheader("TR vs DE Trend Skorları")
-fig, ax = plt.subplots(figsize=(10, 6))
-bar_width = 0.35
-x = range(len(df_plot))
-ax.barh([i + bar_width for i in x], df_plot["tr"], height=bar_width, label="TR", color="#3498db")
-ax.barh(x, df_plot["de"], height=bar_width, label="DE", color="#1abc9c")
-
-ax.set_yticks([i + bar_width / 2 for i in x])
-ax.set_yticklabels(df_plot["product"])
-ax.invert_yaxis()
-ax.set_xlabel("Trend Skoru (0–100)")
-ax.legend()
-st.pyplot(fig)
